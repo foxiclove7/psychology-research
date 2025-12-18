@@ -481,7 +481,7 @@ button:disabled {
 
 <!-- 1. Приветствие -->
 <div class="screen active" id="screen-consent">
-  <h2>Уважаемая участница исследования!</h2>
+  <h2>Уважаемые участницы исследования!</h2>
   
   <div class="instruction">
     <p>Я, <strong>Полухтина Валерия Вадимовна</strong>, студентка 5 курса факультета психологии, 
@@ -640,7 +640,7 @@ button:disabled {
   </div>
 </div>
 
-<!-- 3. Спилбергер–Ханин (СТАИ) -->
+<!-- 3. Спилбергер–Ханин (С-Х) -->
 <div class="screen" id="screen-stai">
   <h2>Шкала тревожности</h2>
   
@@ -659,7 +659,6 @@ button:disabled {
   </div>
   
   <div class="nav-buttons">
-    <button onclick="prev('screen-stai','screen-demography')">← Назад</button>
     <button onclick="next('screen-stai','screen-cerq')">Далее →</button>
   </div>
   
@@ -720,7 +719,6 @@ button:disabled {
   </div>
   
   <div class="nav-buttons">
-    <button onclick="prev('screen-lazarus','screen-cerq')">← Назад</button>
     <button onclick="next('screen-lazarus','screen-pkgd')">Далее →</button>
   </div>
   
@@ -747,7 +745,6 @@ button:disabled {
   </div>
   
   <div class="nav-buttons">
-    <button onclick="prev('screen-pkgd','screen-lazarus')">← Назад</button>
     <button onclick="submitAllData()">Завершить и отправить данные →</button>
   </div>
   
@@ -790,9 +787,6 @@ button:disabled {
       <p>Пожалуйста, попробуйте еще раз или свяжитесь с со мной.</p>
     </div>
     <button onclick="submitAllData()">Попробовать снова</button>
-    <button onclick="window.location.reload()" style="background: var(--peach-light); color: var(--text-dark); margin-left: 10px;">
-      Начать заново
-    </button>
   </div>
   
   <div class="progress-container">
@@ -803,8 +797,8 @@ button:disabled {
 
 <script>
 // ========== КОНФИГУРАЦИЯ ==========
-const GOOGLE_FORM_URL = 'https://docs.google.com/forms/d/e/1IIoGm9Gb4nSPnZuK6-CoPhHWO7diszyOcZs7rzcmIqk/formResponse';
-const GOOGLE_FORM_FIELD = 'entry.385386744'; // Замените на ваш ID поля
+const GOOGLE_FORM_URL = 'https://docs.google.com/forms/d/e/1FAIpQLSefE4Wv_0OhCv-ci70qlGAQ3vJ5a3IZCBgHawggkcUSFnr30Q/formResponse';
+const GOOGLE_FORM_FIELD = 'entry.2134456026'; // <-- ВАШ ID ПОЛЯ
 
 // ========== ДАННЫЕ ВОПРОСОВ ==========
 
