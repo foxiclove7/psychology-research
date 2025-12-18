@@ -525,7 +525,7 @@ button:disabled {
     </div>
     <div class="status-item">
       <div class="status-circle">3</div>
-      <div>СТАИ</div>
+      <div>С-Х</div>
     </div>
     <div class="status-item">
       <div class="status-circle">4</div>
@@ -630,7 +630,6 @@ button:disabled {
   </div>
   
   <div class="nav-buttons">
-    <button onclick="prev('screen-demography','screen-consent')">← Назад</button>
     <button onclick="next('screen-demography','screen-stai')">Далее →</button>
   </div>
   
@@ -686,7 +685,6 @@ button:disabled {
   </div>
   
   <div class="nav-buttons">
-    <button onclick="prev('screen-cerq','screen-stai')">← Назад</button>
     <button onclick="next('screen-cerq','screen-lazarus')">Далее →</button>
   </div>
   
@@ -776,9 +774,6 @@ button:disabled {
         <li>Благодарю за ваш вклад в науку!</li>
       </ul>
     </div>
-    
-    <button onclick="window.location.reload()">Заполнить анкету снова</button>
-  </div>
   
   <div id="error-message" style="display: none;">
     <h2 style="color: #F44336;">⚠️ Ошибка отправки</h2>
@@ -1392,8 +1387,9 @@ async function submitAllData() {
     // Сохраняем последний экран
     saveScreenData('screen-pkgd');
     
+    // 1. СОБИРАЕМ ВСЕ ДАННЫЕ
     const allResponses = {
-      // Демография (только нужные поля)
+      // Демография
       code: allData.code || '',
       age: allData.age || '',
       city: allData.city || '',
@@ -1413,31 +1409,30 @@ async function submitAllData() {
       pkgd_total: calculatePkgd().total
     };
     
-     // 2. ОТПРАВЛЯЕМ КАК ПРОСТОЙ ТЕКСТ
-    const formData = new FormData();
+    // 2. ОТПРАВЛЯЕМ КАК ПРОСТОЙ ТЕКСТ
+    const formDataToSend = new FormData(); // ← ИЗМЕНИЛ ИМЯ ПЕРЕМЕННОЙ
     const jsonString = JSON.stringify(allResponses, null, 2);
     console.log("Отправляемые данные:", jsonString);
-    formData.append(GOOGLE_FORM_FIELD, jsonString);
+    formDataToSend.append(GOOGLE_FORM_FIELD, jsonString);
     
-    // Отправляем в Google Forms
-    const formData = new FormData();
-    formData.append(GOOGLE_FORM_FIELD, JSON.stringify(allResponses, null, 2));
+    // 3. ПОКАЗЫВАЕМ ЗАГРУЗКУ
+    document.getElementById('screen-pkgd').classList.remove('active');
+    document.getElementById('screen-finish').classList.add('active');
+    document.getElementById('loading').classList.add('active');
     
+    // 4. ОТПРАВКА
     await fetch(GOOGLE_FORM_URL, {
       method: 'POST',
       mode: 'no-cors',
-      body: formData
+      body: formDataToSend
     });
     
-    // Имитация задержки
-    await new Promise(resolve => setTimeout(resolve, 2000));
-    
-    // Показываем успех
-    document.getElementById('loading').classList.remove('active');
-    document.getElementById('success-message').style.display = 'block';
-    
-    // Очищаем localStorage
-    localStorage.clear();
+    // 5. УСПЕХ
+    setTimeout(() => {
+      document.getElementById('loading').classList.remove('active');
+      document.getElementById('success-message').style.display = 'block';
+      localStorage.clear();
+    }, 2000);
     
   } catch (error) {
     console.error('Ошибка:', error);
