@@ -1360,13 +1360,30 @@ function updateProgress() {
   }
 }
 
-// ========== РАСЧЕТ БАЛЛОВ (те же функции что в предыдущем коде) ==========
-function calculateAllScores() {
-  // Те же функции расчета что в предыдущем коде
-  // Для краткости не дублирую, они будут работать
-  return {
-    // ... расчетные данные
-  };
+function calculateStaiState() {
+  let sum = 0;
+  for (let i = 1; i <= 20; i++) {
+    const val = parseInt(allData['q' + i]) || 0;
+    sum += val;
+  }
+  return sum;
+}
+
+function calculateStaiTrait() {
+  let sum = 0;
+  for (let i = 21; i <= 40; i++) {
+    const val = parseInt(allData['q' + i]) || 0;
+    sum += val;
+  }
+  return sum;
+}
+
+function calculatePkgd() {
+  let sum = 0;
+  for (let i = 1; i <= 9; i++) {
+    sum += parseInt(allData['p' + i]) || 0;
+  }
+  return { total: sum };
 }
 
 // ========== ОТПРАВКА ==========
@@ -1375,26 +1392,32 @@ async function submitAllData() {
     // Сохраняем последний экран
     saveScreenData('screen-pkgd');
     
-    // Показываем загрузку
-    document.getElementById('screen-pkgd').classList.remove('active');
-    document.getElementById('screen-finish').classList.add('active');
-    document.getElementById('loading').classList.add('active');
-    
-    // Рассчитываем баллы
-    const scores = calculateAllScores();
-    
-    // Формируем данные
     const allResponses = {
-      timestamp: new Date().toISOString(),
-      demographics: {
-        code: allData.code,
-        age: allData.age,
-        city: allData.city,
-        // ... остальные демографические данные
-      },
-      raw_answers: allData,
-      calculated_scores: scores
+      // Демография (только нужные поля)
+      code: allData.code || '',
+      age: allData.age || '',
+      city: allData.city || '',
+      group_abort: allData.group_abort || '',
+      pregnancies: allData.pregnancies || '',
+      miscarriages: allData.miscarriages || '',
+      children: allData.children || '',
+      months_after_abort: allData.months_after_abort || '',
+      planning: allData.planning || '',
+      therapy: allData.therapy || '',
+      meds: allData.meds || '',
+      education: allData.education || '',
+      
+      // Результаты тестов
+      stai_state: calculateStaiState(),
+      stai_trait: calculateStaiTrait(),
+      pkgd_total: calculatePkgd().total
     };
+    
+     // 2. ОТПРАВЛЯЕМ КАК ПРОСТОЙ ТЕКСТ
+    const formData = new FormData();
+    const jsonString = JSON.stringify(allResponses, null, 2);
+    console.log("Отправляемые данные:", jsonString);
+    formData.append(GOOGLE_FORM_FIELD, jsonString);
     
     // Отправляем в Google Forms
     const formData = new FormData();
