@@ -1355,41 +1355,132 @@ function updateProgress() {
   }
 }
 
+// === СТАИ: ПРАВИЛЬНЫЙ ПОДСЧЕТ ===
 function calculateStaiState() {
+  // Ключ: для СИТУАТИВНОЙ тревожности (вопросы 1-20)
+  // 1,2,5,8,10,11,15,16,19,20 - ОБРАТНЫЕ (4,3,2,1)
+  // остальные - ПРЯМЫЕ (1,2,3,4)
+  
+  const reverseQuestionsST = [1,2,5,8,10,11,15,16,19,20];
   let sum = 0;
+  
   for (let i = 1; i <= 20; i++) {
-    const val = parseInt(allData['q' + i]) || 0;
-    sum += val;
+    const answer = parseInt(allData['q' + i]) || 1; // 1-4
+    if (reverseQuestionsST.includes(i)) {
+      // Обратные: 4→1, 3→2, 2→3, 1→4
+      sum += (5 - answer);
+    } else {
+      // Прямые: как есть
+      sum += answer;
+    }
   }
-  return sum;
+  return sum; // 20-80 баллов
 }
 
 function calculateStaiTrait() {
+  // Ключ: для ЛИЧНОСТНОЙ тревожности (вопросы 21-40)
+  // 21,26,27,30,33,36,39 - ОБРАТНЫЕ (4,3,2,1)
+  // остальные - ПРЯМЫЕ (1,2,3,4)
+  
+  const reverseQuestionsLT = [21,26,27,30,33,36,39];
   let sum = 0;
+  
   for (let i = 21; i <= 40; i++) {
-    const val = parseInt(allData['q' + i]) || 0;
-    sum += val;
+    const answer = parseInt(allData['q' + i]) || 1;
+    if (reverseQuestionsLT.includes(i)) {
+      sum += (5 - answer);
+    } else {
+      sum += answer;
+    }
   }
-  return sum;
+  return sum; // 20-80 баллов
 }
 
-function calculatePkgd() {
-  let sum = 0;
+// === CERQ: 9 ШКАЛ (по 4 вопроса каждая) ===
+function calculateCerqScores() {
+  const scales = {
+    self_blame: [1,10,19,28],
+    acceptance: [2,11,20,29],
+    rumination: [3,12,21,30],
+    positive_refocus: [4,13,22,31],
+    refocus_plan: [5,14,23,32],
+    positive_reappraisal: [6,15,24,33],
+    putting_perspective: [7,16,25,34],
+    catastrophizing: [8,17,26,35],
+    blaming_others: [9,18,27,36]
+  };
+  
+  const scores = {};
+  for (const [scaleName, questions] of Object.entries(scales)) {
+    scores[scaleName] = questions.reduce((sum, q) => {
+      return sum + (parseInt(allData['c' + q]) || 1);
+    }, 0);
+  }
+  return scores;
+}
+
+// === ССП ЛАЗАРУСА: 8 ШКАЛ ===
+function calculateLazarusScores() {
+  const scales = {
+    confrontive: [2,3,13,21,26,37],          // Конфронтационный копинг
+    distancing: [8,9,11,16,32,35],           // Дистанцирование
+    self_control: [6,10,27,34,44,49,50],     // Самоконтроль
+    seeking_social: [4,14,17,24,33,36],      // Поиск социальной поддержки
+    accepting_resp: [5,19,22,42],            // Принятие ответственности
+    escape_avoid: [7,12,25,31,38,41,46,47],  // Бегство-избегание
+    planful: [1,20,30,39,40,43],             // Планирование решения
+    positive_reappraisal: [15,18,23,28,29,45,48] // Положительная переоценка
+  };
+  
+  // === ПКГД (ТОБ): 5 ТИПОВ ГОТОВНОСТИ ===
+function calculatePkgdScores() {
+  // Ключ перевода выбранного варианта в тип
+  // Каждый блок (A-I, A-II, ...) имеет свой ключ
+  const typeKeys = {
+    // Блок: [О, Г, Э, Т, Д] для вариантов 1-5
+    'p1': [4,2,1,3,5],  // A-I
+    'p2': [2,3,4,1,5],  // A-II
+    'p3': [3,1,5,2,4],  // A-III
+    'p4': [5,3,4,1,2],  // Б-I
+    'p5': [1,4,2,3,5],  // Б-II
+    'p6': [3,1,2,5,4],  // Б-III
+    'p7': [3,2,1,5,4],  // В-I
+    'p8': [1,4,2,5,3],  // В-II
+    'p9': [5,4,3,2,1]   // В-III
+  };
+  
+  const typeSums = { О: 0, Г: 0, Э: 0, Т: 0, Д: 0 };
+  
+  // Подсчитываем баллы по типам
   for (let i = 1; i <= 9; i++) {
-    sum += parseInt(allData['p' + i]) || 0;
+    const answer = parseInt(allData['p' + i]) || 1; // 1-5
+    const key = typeKeys['p' + i];
+    
+    if (key && answer >= 1 && answer <= 5) {
+      // answer=1 → key[0], answer=2 → key[1], ...
+      const typeIndex = ['О', 'Г', 'Э', 'Т', 'Д'][key[answer-1]-1];
+      typeSums[typeIndex]++;
+    }
   }
-  return { total: sum };
+  
+  return {
+    О: typeSums.О,  // Оптимальный тип
+    Г: typeSums.Г,  // Гипогестогнозический
+    Э: typeSums.Э,  // Эйфорический
+    Т: typeSums.Т,  // Тревожный
+    Д: typeSums.Д,  // Депрессивный
+    total: Object.values(typeSums).reduce((a, b) => a + b, 0) // 9 всегда
+  };
 }
 
-// ========== ОТПРАВКА ==========
 async function submitAllData() {
   try {
-    // Сохраняем последний экран
     saveScreenData('screen-pkgd');
     
-    // 1. СОБИРАЕМ ВСЕ ДАННЫЕ
-    const allResponses = {
-      // Демография
+    // === 1. СБОР ВСЕХ ДАННЫХ ===
+    
+    // Демография
+    const demographics = {
       code: allData.code || '',
       age: allData.age || '',
       city: allData.city || '',
@@ -1401,33 +1492,84 @@ async function submitAllData() {
       planning: allData.planning || '',
       therapy: allData.therapy || '',
       meds: allData.meds || '',
-      education: allData.education || '',
-      
-      // Результаты тестов
-      stai_state: calculateStaiState(),
-      stai_trait: calculateStaiTrait(),
-      pkgd_total: calculatePkgd().total
+      education: allData.education || ''
     };
     
-    // 2. ОТПРАВЛЯЕМ КАК ПРОСТОЙ ТЕКСТ
-    const formDataToSend = new FormData(); // ← ИЗМЕНИЛ ИМЯ ПЕРЕМЕННОЙ
-    const jsonString = JSON.stringify(allResponses, null, 2);
-    console.log("Отправляемые данные:", jsonString);
-    formDataToSend.append(GOOGLE_FORM_FIELD, jsonString);
+    // Функция сбора вопросов
+    function collectQuestions(prefix, start, end) {
+      const result = {};
+      for (let i = start; i <= end; i++) {
+        result[`${prefix}${i}`] = allData[`${prefix}${i}`] || '';
+      }
+      return result;
+    }
     
-    // 3. ПОКАЗЫВАЕМ ЗАГРУЗКУ
+    // Ответы по методикам
+    const staiAnswers = collectQuestions('q', 1, 40);
+    const cerqAnswers = collectQuestions('c', 1, 36);
+    const lazarAnswers = collectQuestions('l', 1, 50);
+    const pkgdAnswers = collectQuestions('p', 1, 9);
+    
+   // === 2. РАСЧЕТ БАЛЛОВ ПО КЛЮЧАМ ===
+
+// СТАИ баллы
+const staiScores = {
+  state: calculateStaiState(),
+  trait: calculateStaiTrait()
+};
+
+// CERQ баллы (9 шкал)
+const cerqScores = calculateCerqScores();
+
+// ССП Лазаруса баллы (8 шкал)
+const lazarScores = calculateLazarusScores();
+
+// ПКГД баллы (5 типов + итог)
+const pkgdScores = calculatePkgdScores();
+const pkgdScore = pkgdScores.total; // для 10-го поля
+    
+    // === 3. ОТПРАВКА В 10 ПОЛЕЙ ===
+    
+    // ВАШИ ID ПОЛЕЙ
+    const FIELD_IDS = [
+      'entry.2134456026', // 1. Код участника
+      'entry.300457556',  // 2. Демография (JSON)
+      'entry.1439011840', // 3. СТАИ ответы (JSON)
+      'entry.862194608',  // 4. СТАИ баллы (JSON)
+      'entry.1991637437', // 5. CERQ ответы (JSON)
+      'entry.2016809335', // 6. CERQ баллы (JSON)
+      'entry.1515712681', // 7. ССП ответы (JSON)
+      'entry.552834598',  // 8. ССП баллы (JSON)
+      'entry.171709964',  // 9. ПКГД ответы (JSON)
+      'entry.114096340'   // 10. ПКГД балл (число)
+    ];
+    
+    const formData = new FormData();
+    
+    // Заполняем все 10 полей
+    formData.append(FIELD_IDS[0], demographics.code);
+    formData.append(FIELD_IDS[1], JSON.stringify(demographics, null, 2));
+    formData.append(FIELD_IDS[2], JSON.stringify(staiAnswers, null, 2));
+    formData.append(FIELD_IDS[3], JSON.stringify(staiScores, null, 2));
+    formData.append(FIELD_IDS[4], JSON.stringify(cerqAnswers, null, 2));
+    formData.append(FIELD_IDS[5], JSON.stringify(cerqScores, null, 2));
+    formData.append(FIELD_IDS[6], JSON.stringify(lazarAnswers, null, 2));
+    formData.append(FIELD_IDS[7], JSON.stringify(lazarScores, null, 2));
+    formData.append(FIELD_IDS[8], JSON.stringify(pkgdAnswers, null, 2));
+    formData.append(FIELD_IDS[9], pkgdScore.toString());
+    
+    // === 4. ОТПРАВКА ===
+    
     document.getElementById('screen-pkgd').classList.remove('active');
     document.getElementById('screen-finish').classList.add('active');
     document.getElementById('loading').classList.add('active');
     
-    // 4. ОТПРАВКА
     await fetch(GOOGLE_FORM_URL, {
       method: 'POST',
       mode: 'no-cors',
-      body: formDataToSend
+      body: formData
     });
     
-    // 5. УСПЕХ
     setTimeout(() => {
       document.getElementById('loading').classList.remove('active');
       document.getElementById('success-message').style.display = 'block';
