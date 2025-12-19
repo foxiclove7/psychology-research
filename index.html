@@ -773,6 +773,7 @@ button:disabled {
         <li>Если у вас есть вопросы, свяжитесь с со мной ТГ - @lulerochka</li>
         <li>Благодарю за ваш вклад в науку!</li>
       </ul>
+      </div>
     </div>
   
   <div id="error-message" style="display: none;">
@@ -793,7 +794,7 @@ button:disabled {
 <script>
 // ========== КОНФИГУРАЦИЯ ==========
 const GOOGLE_FORM_URL = 'https://docs.google.com/forms/d/e/1FAIpQLSefE4Wv_0OhCv-ci70qlGAQ3vJ5a3IZCBgHawggkcUSFnr30Q/formResponse';
-const GOOGLE_FORM_FIELD = 'entry.2134456026'; // <-- ВАШ ID ПОЛЯ
+const GOOGLE_FORM_FIELD = 'entry.2134456026';'entry.300457556'; 'entry.1439011840';'entry.862194608';'entry.1991637437';'entry.2016809335';'entry.1515712681';'entry.552834598';'entry.171709964';'entry.114096340';// <-- ВАШ ID ПОЛЯ
 
 // ========== ДАННЫЕ ВОПРОСОВ ==========
 
@@ -1156,7 +1157,7 @@ function setupAnswerTracking() {
         });
         
         // Выделяем выбранный вариант
-        pkgdOption.style.borderLeftColor = 'var(--peast-accent)';
+        pkgdOption.style.borderLeftColor = 'var(--peach-accent)';
       }
     }
   });
@@ -1431,6 +1432,15 @@ function calculateLazarusScores() {
     planful: [1,20,30,39,40,43],             // Планирование решения
     positive_reappraisal: [15,18,23,28,29,45,48] // Положительная переоценка
   };
+  
+  const scores = {};
+  for (const [scaleName, questions] of Object.entries(scales)) {
+    scores[scaleName] = questions.reduce((sum, q) => {
+      return sum + (parseInt(allData['l' + q]) || 0); // 0-3
+    }, 0);
+  }
+  return scores;
+}
   
   // === ПКГД (ТОБ): 5 ТИПОВ ГОТОВНОСТИ ===
 function calculatePkgdScores() {
